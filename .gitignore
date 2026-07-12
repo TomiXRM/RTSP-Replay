@@ -41,3 +41,4 @@ docs/assets/*.mov
 .DS_Store
 Thumbs.db
 .logs/
+config/relays.conf

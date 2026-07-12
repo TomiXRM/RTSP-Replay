@@ -1,0 +1,6 @@
+# カメラ中継の定義（camera-relay.sh が読む）
+# 形式: <MediaMTX上のパス名> <カメラIP> <カメラ側パス>
+# 認証情報は .env の CAM_USERNAME / CAM_PASSWORD が使われる。
+# コピーして relays.conf を作成すること（relays.conf は環境固有のためGit管理外）。
+sm-01 192.168.1.30 /live
+sm-02 192.168.1.31 /live

@@ -191,6 +191,27 @@ CAM_PASSWORD=4003
 複数台ある場合は `[[sources]]` ブロックを IP を変えて並べるだけです（認証は全台で同じ `.env` を参照）。
 `id` はこのシステム内での配信・録画の名前で、カメラ側のパス `/live` と一致させる必要はありません。
 
+> **AtomCam2 のタイムスタンプ問題（重要）**: AtomCam2 は映像を「20fps」として
+> タイムスタンプを刻みながら実際は約14fpsしか送らないため、上記の直接取り込みでは
+> 録画・保存した動画が「途中から映像が消えて音声だけになる」症状が出ます。
+> 対策として、ffmpeg で受信時刻ベースにタイムスタンプを打ち直して中継する
+> スクリプトを用意しています（再エンコード無し・カメラ1台あたり ffmpeg 1プロセス）:
+>
+> ```bash
+> cp config/relays.conf.example config/relays.conf   # カメラのIP・パス名を記載
+> ./scripts/camera-relay.sh start                     # 中継開始（自動再接続つき）
+> ```
+>
+> この場合 sources.toml の該当カメラは中継の受け口を指す publish 形式にします:
+>
+> ```toml
+> [[sources]]
+> id = "sm-01"
+> name = "AtomCam2（作業エリア）"
+> rtsp_url = "rtsp://localhost:8554/sm-01"   # relays.conf のパス名と一致させる
+> enabled = true
+> ```
+
 一時的なカメラは「Paneを追加 → URLを入力」からも追加できます（TOML は変更されず、SQLite に保存）。
 
 ## 主な設定（.env）
