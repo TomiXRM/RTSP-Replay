@@ -1,0 +1,47 @@
+# =============================================================================
+# 映像ソース設定（実機カメラ4台）
+# =============================================================================
+# SPEC 7.1 推奨形式: host/path + 環境変数認証
+# 認証情報（CAM_USERNAME/CAM_PASSWORD）は .env に設定（Git管理外）。
+# バックエンド起動時に .env を読み込み、rtsp://<user>:<pass>@<host>:<port><path> を構築する。
+# =============================================================================
+
+[[sources]]
+id = "cam-01"
+name = "カメラ1"
+host = "172.16.0.140"
+port = 554
+path = "/live"
+username_env = "CAM_USERNAME"
+password_env = "CAM_PASSWORD"
+enabled = true
+
+[[sources]]
+id = "cam-02"
+name = "カメラ2"
+host = "172.16.0.141"
+port = 554
+path = "/live"
+username_env = "CAM_USERNAME"
+password_env = "CAM_PASSWORD"
+enabled = true
+
+[[sources]]
+id = "cam-03"
+name = "カメラ3"
+host = "172.16.0.142"
+port = 554
+path = "/live"
+username_env = "CAM_USERNAME"
+password_env = "CAM_PASSWORD"
+enabled = true
+
+[[sources]]
+id = "cam-04"
+name = "カメラ4"
+host = "172.16.0.143"
+port = 554
+path = "/live"
+username_env = "CAM_USERNAME"
+password_env = "CAM_PASSWORD"
+enabled = true

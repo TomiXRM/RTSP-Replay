@@ -1,0 +1,151 @@
+# =============================================================================
+# ロボット監視・リプレイシステム — 開発環境
+# =============================================================================
+# SPEC 5章 システム構成
+#   RTSPカメラ → MediaMTX（取り込み/配信/録画/過去映像）→ 監視バックエンド → Webフロント
+#
+# 起動:
+#   docker compose up -d
+#
+# 構成:
+#   mediamtx   - 映像中継・録画基盤（SPEC 5章）。HLS配信とfMP4録画を行う
+#   testsrc-N  - 検証用のダミーRTSP映像（SMPTExカラーバー）。実機カメラの代わり
+#   backend    - 監視バックエンド（FastAPI）。別途ホストで `uvicorn` 実行（プロキシ経由）
+#
+# バックエンド・フロントエンドはホスト側で開発サーバを起動し、
+# フロントのViteプロキシ経由でこれらのコンテナへアクセスする。
+# =============================================================================
+
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: replay-mediamtx
+    restart: unless-stopped
+    command: ["/mediamtx.yml"]
+    environment:
+      # Docker版はコンテナ内 /recordings へ保存（ボリュームマウント）
+      MTX_RECORDPATH: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+    volumes:
+      - ./config/mediamtx.yml:/mediamtx.yml:ro
+      - recordings:/recordings
+    ports:
+      # RTSP（カメラ取り込み・テストソース受信）
+      - "8554:8554"
+      # HLS（ブラウザライブ配信・開発時の直接確認用）
+      - "8888:8888"
+      # Playback（過去映像）
+      - "9996:9996"
+      # 管理API（バックエンドが使用。LANには出さない想定だが開発時は公開）
+      - "9997:9997"
+    networks:
+      - replay
+
+  # --- 検証用ダミーカメラ1: ロボット全体 -----------------------------------
+  # profiles: mock 指定で実機運用時は起動しない（docker compose --profile mock up）
+  testsrc-1:
+    image: linuxserver/ffmpeg:latest
+    container_name: replay-testsrc-1
+    restart: unless-stopped
+    profiles: ["mock"]
+    entrypoint: ["/usr/local/bin/ffmpeg"]
+    command:
+      - -re
+      - -stream_loop
+      - "-1"
+      - -i
+      - smptebars=size=1280x720:rate=15
+      - -vf
+      - drawtext=text='%{localtime}':x=10:y=10:fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5
+      - -c:v
+      - libx264
+      - -preset
+      - veryfast
+      - -tune
+      - zerolatency
+      - -pix_fmt
+      - yuv420p
+      - -g
+      - "30"
+      - -an
+      - -f
+      - rtsp
+      - rtsp://mediamtx:8554/cam1
+    depends_on:
+      - mediamtx
+    networks:
+      - replay
+
+  # --- 検証用ダミーカメラ2: 部品供給部 -----------------------------------
+  testsrc-2:
+    image: linuxserver/ffmpeg:latest
+    container_name: replay-testsrc-2
+    restart: unless-stopped
+    profiles: ["mock"]
+    entrypoint: ["/usr/local/bin/ffmpeg"]
+    command:
+      - -re
+      - -stream_loop
+      - "-1"
+      - -i
+      - smptebars=type=2:size=1280x720:rate=15
+      - -vf
+      - drawtext=text='%{localtime}':x=10:y=10:fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5
+      - -c:v
+      - libx264
+      - -preset
+      - veryfast
+      - -tune
+      - zerolatency
+      - -pix_fmt
+      - yuv420p
+      - -g
+      - "30"
+      - -an
+      - -f
+      - rtsp
+      - rtsp://mediamtx:8554/cam2
+    depends_on:
+      - mediamtx
+    networks:
+      - replay
+
+  # --- 検証用ダミーカメラ3: 搬送部 -----------------------------------------
+  testsrc-3:
+    image: linuxserver/ffmpeg:latest
+    container_name: replay-testsrc-3
+    restart: unless-stopped
+    profiles: ["mock"]
+    entrypoint: ["/usr/local/bin/ffmpeg"]
+    command:
+      - -re
+      - -stream_loop
+      - "-1"
+      - -i
+      - smptebars=type=3:size=1280x720:rate=15
+      - -vf
+      - drawtext=text='%{localtime}':x=10:y=10:fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5
+      - -c:v
+      - libx264
+      - -preset
+      - veryfast
+      - -tune
+      - zerolatency
+      - -pix_fmt
+      - yuv420p
+      - -g
+      - "30"
+      - -an
+      - -f
+      - rtsp
+      - rtsp://mediamtx:8554/cam3
+    depends_on:
+      - mediamtx
+    networks:
+      - replay
+
+volumes:
+  recordings:
+
+networks:
+  replay:
+    driver: bridge

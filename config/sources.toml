@@ -1,0 +1,42 @@
+# =============================================================================
+# 映像ソース設定（ローカルダミーカメラ4台）
+# =============================================================================
+# ローカル検証用。ffmpeg が MediaMTX の cam-01〜cam-04 パスへ
+# ダミー映像を push（publish）する。
+#
+# 動作原理:
+#   ffmpeg が rtsp://localhost:8554/cam-01 へ映像を push する
+#   MediaMTX はパス cam-01 を自動作成して受信
+#   後端はソースID cam-01 を知っているだけでよい（MediaMTXへのパス登録は不要）
+#
+# 重要: id と ffmpeg が送信する RTSP URL のパス名を一致させる。
+#   id = "cam-01"  →  rtsp://localhost:8554/cam-01
+#
+# 使い方:
+#   ./scripts/dev-mock.sh start
+# =============================================================================
+
+[[sources]]
+id = "cam-01"
+name = "カメラ1（テストパターン）"
+rtsp_url = "rtsp://localhost:8554/cam-01"
+enabled = true
+
+[[sources]]
+id = "cam-02"
+name = "カメラ2（テストパターン）"
+rtsp_url = "rtsp://localhost:8554/cam-02"
+enabled = true
+
+[[sources]]
+id = "cam-03"
+name = "カメラ3（テストパターン）"
+rtsp_url = "rtsp://localhost:8554/cam-03"
+enabled = true
+
+[[sources]]
+id = "cam-04"
+name = "カメラ4（テストパターン）"
+rtsp_url = "rtsp://localhost:8554/cam-04"
+enabled = true
+

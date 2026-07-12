@@ -1,0 +1,79 @@
+# =============================================================================
+# MediaMTX 設定 (v1.19 準拠)
+# =============================================================================
+# SPEC: RTSP取り込み / ライブ配信(HLS) / 録画(fMP4) / 2時間リング削除
+#
+# パスの動的定義（record: true 含む）はバックエンドの REST API
+# (/v3/config/paths/add) で行う。ここではサーバ全体のエンドポイント設定のみ。
+# 参考: https://github.com/bluenviron/mediamtx (v1.19)
+# =============================================================================
+
+###############################################
+# General
+###############################################
+logLevel: info
+logDestinations: [stdout]
+
+###############################################
+# 認証（LAN内運用: NFR-003）
+# カメラ取り込み(publish)/読み取り(read)/再生(playback)/API を
+# 認証なしで許可する。APIは本来 localhost のみだが、Docker ブリッジ経由で
+# バックエンドがアクセスするため全IPへ許可する。
+###############################################
+authMethod: internal
+authInternalUsers:
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: publish
+      - action: read
+      - action: playback
+      - action: api
+      - action: metrics
+      - action: pprof
+
+###############################################
+# API（バックエンドが使用）
+###############################################
+api: yes
+apiAddress: :9997
+
+###############################################
+# RTSP サーバ（カメラからの取り込み用）
+###############################################
+rtsp: yes
+rtspAddress: :8554
+rtspTransports: [tcp, udp]
+
+###############################################
+# HLS サーバ（ブラウザ向けライブ配信。SPEC FR-012 約3秒遅延）
+###############################################
+hls: yes
+hlsAddress: :8888
+# 標準HLS（lowLatency は cookieCheck + LL-HLS で hls.js との相性問題があるため）
+hlsVariant: mpegts
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+hlsMuxerCloseAfter: 60s
+
+###############################################
+# 録画のグローバル既定値（SPEC FR-014/015 fMP4・2時間保持）
+# 各パスで record: true を指定した場合に適用される。
+#
+# ローカル（Docker不要版）: カレントディレクトリ配下 ./recordings へ保存。
+#   dev-mock.sh はプロジェクトルートから起動するので ./recordings = プロジェクト内。
+# Docker版: docker-compose.yml の environment で MTX_RECORDPATH=/recordings を指定。
+###############################################
+recordPath: ./recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+recordFormat: fmp4
+recordPartDuration: 1s
+recordSegmentDuration: 1m
+recordDeleteAfter: 2h
+
+###############################################
+# Playback（過去映像再生用）
+###############################################
+playback: yes
+playbackAddress: :9996

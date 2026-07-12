@@ -1,0 +1,36 @@
+# 環境変数・認証情報（NFR-003: 認証情報をGitへコミットしない）
+.env
+.env.local
+.env.*.local
+
+# 録画・データ
+recordings/
+data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+
+# Node
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# MediaMTX
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+.logs/
