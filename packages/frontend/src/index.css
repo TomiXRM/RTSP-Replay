@@ -1,0 +1,178 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 監視UI ダークテーマ（monitor_sample.html 準拠） */
+    --background: 213 28% 5%; /* #07090d */
+    --foreground: 222 18% 92%; /* #e7eaf0 */
+    --card: 217 26% 9%; /* #0e121a */
+    --card-foreground: 222 18% 92%;
+    --primary: 75 100% 64%; /* #c9ff05 アクセント（黄緑） */
+    --primary-foreground: 213 40% 5%;
+    --secondary: 218 22% 13%; /* #12161f */
+    --secondary-foreground: 222 18% 92%;
+    --muted: 213 24% 7%; /* #0a0d13 */
+    --muted-foreground: 220 9% 49%; /* #7b8395 */
+    --accent: 75 100% 64%;
+    --accent-foreground: 213 40% 5%;
+    --destructive: 355 80% 61%; /* #ec4b52 */
+    --destructive-foreground: 222 18% 92%;
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.14);
+    --ring: 75 100% 64%;
+    --radius: 7px;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: #07090d;
+    color: #e7eaf0;
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  a {
+    color: #3d9bf0;
+  }
+  a:hover {
+    color: #6bb4f5;
+  }
+
+  /* スクロールバー */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #232936;
+    border-radius: 6px;
+    border: 2px solid #07090d;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  /* フォントファミリー */
+  .font-mono-jp {
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  /* 状態色（monitor_sample.html 準拠） */
+  .text-ok {
+    color: #46c98b;
+  }
+  .text-warn {
+    color: #e6a53a;
+  }
+  .text-danger {
+    color: #ec4b52;
+  }
+  .text-live {
+    color: #ff6b71;
+  }
+  .text-accent {
+    color: #c9ff05;
+  }
+  .text-muted-ink {
+    color: #7b8395;
+  }
+
+  /* アニメーション（Pane プレースホルダ映像用） */
+  @keyframes rp-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes rp-scan {
+    0% {
+      top: -6%;
+    }
+    100% {
+      top: 106%;
+    }
+  }
+  @keyframes rp-blink {
+    0%,
+    55% {
+      opacity: 1;
+    }
+    56%,
+    100% {
+      opacity: 0.2;
+    }
+  }
+  @keyframes rp-drift {
+    0% {
+      transform: translate3d(-8%, 0, 0);
+    }
+    100% {
+      transform: translate3d(8%, 0, 0);
+    }
+  }
+  @keyframes rp-flick {
+    0%,
+    100% {
+      opacity: 0.9;
+    }
+    47% {
+      opacity: 0.62;
+    }
+    48% {
+      opacity: 0.95;
+    }
+  }
+  @keyframes rp-toastin {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 12px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+  @keyframes rp-menuin {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .animate-rp-spin {
+    animation: rp-spin 0.85s linear infinite;
+  }
+  .animate-rp-scan {
+    animation: rp-scan 5.5s linear infinite;
+  }
+  .animate-rp-blink {
+    animation: rp-blink 1.4s step-end infinite;
+  }
+  .animate-rp-toastin {
+    animation: rp-toastin 0.2s ease;
+  }
+  .animate-rp-menuin {
+    animation: rp-menuin 0.12s ease;
+  }
+}
