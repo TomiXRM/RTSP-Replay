@@ -61,7 +61,7 @@ start_relays() {
     ) &
     echo $! > "$LOG_DIR/relay-${name}.pid"
     echo "  ${name}: 中継開始 (${ip}${campath} → rtsp://localhost:8554/${name})"
-  done
+  done || true  # 定義0件時の grep 終了コード1 を失敗扱いにしない
 }
 
 stop_relays() {

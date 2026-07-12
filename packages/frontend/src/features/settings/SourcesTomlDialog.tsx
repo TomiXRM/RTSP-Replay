@@ -14,7 +14,7 @@ import { useSystemStore } from "@/store/system";
 
 const ACCENT = "#c9ff05";
 
-type Tab = "toml" | "env";
+type Tab = "toml" | "env" | "relays";
 
 export function SourcesTomlDialog({
   open,
@@ -25,8 +25,8 @@ export function SourcesTomlDialog({
 }) {
   const refresh = useSystemStore((s) => s.refresh);
   const [tab, setTab] = useState<Tab>("toml");
-  const [contents, setContents] = useState<Record<Tab, string>>({ toml: "", env: "" });
-  const [paths, setPaths] = useState<Record<Tab, string>>({ toml: "", env: "" });
+  const [contents, setContents] = useState<Record<Tab, string>>({ toml: "", env: "", relays: "" });
+  const [paths, setPaths] = useState<Record<Tab, string>>({ toml: "", env: "", relays: "" });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,10 +38,10 @@ export function SourcesTomlDialog({
     setError(null);
     setSaved(null);
     setLoading(true);
-    Promise.all([api.getSourcesToml(), api.getEnv()])
-      .then(([t, e]) => {
-        setContents({ toml: t.content, env: e.content });
-        setPaths({ toml: t.path, env: e.path });
+    Promise.all([api.getSourcesToml(), api.getEnv(), api.getRelaysConf()])
+      .then(([t, e, r]) => {
+        setContents({ toml: t.content, env: e.content, relays: r.content });
+        setPaths({ toml: t.path, env: e.path, relays: r.path });
       })
       .catch((e) =>
         setError(e instanceof Error ? e.message : "設定の読込に失敗しました"),
@@ -57,6 +57,12 @@ export function SourcesTomlDialog({
       if (tab === "toml") {
         const r = await api.putSourcesToml(contents.toml);
         setSaved(`保存して反映しました（${r.sourceIds.length} ソース: ${r.sourceIds.join(", ")}）`);
+      } else if (tab === "relays") {
+        const r = await api.putRelaysConf(contents.relays);
+        setSaved(
+          `保存しました（${r.names.length} 中継: ${r.names.join(", ")}）` +
+            (r.relayStarted ? " — 新規中継を起動済み" : " — 中継の起動に失敗（サーバーログ参照）"),
+        );
       } else {
         const r = await api.putEnv(contents.env);
         setSaved(`保存して反映しました（${r.keys.length} キー: ${r.keys.join(", ")}）`);
@@ -105,6 +111,9 @@ export function SourcesTomlDialog({
             <TabBtn active={tab === "env"} onClick={() => { setTab("env"); setError(null); setSaved(null); }}>
               .env（認証情報）
             </TabBtn>
+            <TabBtn active={tab === "relays"} onClick={() => { setTab("relays"); setError(null); setSaved(null); }}>
+              中継カメラ
+            </TabBtn>
           </div>
 
           <textarea
@@ -116,7 +125,18 @@ export function SourcesTomlDialog({
           />
 
           <p className="mt-2 text-[10.5px] leading-[1.6] text-muted-ink">
-            {tab === "toml" ? (
+            {tab === "relays" ? (
+              <>
+                AtomCam2 などタイムスタンプが不正なカメラの中継定義（relays.conf）。
+                1行 =「<b className="mx-1 text-[#c3ccdb]">パス名 IPアドレス /カメラ側パス</b>」
+                （例: <code className="mx-1">sm-01 192.168.1.30 /live</code>、# はコメント）。
+                認証は .env の CAM_USERNAME / CAM_PASSWORD を使用します。
+                保存すると新しい中継が自動起動します。sources.toml には同じパス名で
+                <code className="mx-1">rtsp_url = "rtsp://localhost:8554/パス名"</code>
+                のエントリが必要です。既存中継の IP 変更はサーバーで
+                <code className="mx-1">./scripts/camera-relay.sh stop && start</code> を実行してください。
+              </>
+            ) : tab === "toml" ? (
               <>
                 保存すると検証のうえファイルへ書き込み、再起動なしでカメラ一覧と MediaMTX
                 へ反映します（直前の内容は sources.toml.bak に退避）。

@@ -217,3 +217,92 @@ def _parse_retention(raw: str | None) -> float | None:
             status_code=422,
         )
     return hours
+
+
+# ===== relays.conf（タイムスタンプ打ち直し中継カメラ） =====
+
+_RELAYS_PATH = PROJECT_ROOT / "config" / "relays.conf"
+_RELAY_SCRIPT = PROJECT_ROOT / "scripts" / "camera-relay.sh"
+_RELAY_LINE = re.compile(r"^([A-Za-z0-9_-]+)\s+(\S+)\s+(/\S*)$")
+
+
+class RelaysResponse(BaseModel):
+    content: str
+    path: str
+
+
+class RelaysUpdateRequest(BaseModel):
+    content: str
+
+
+class RelaysUpdateResponse(BaseModel):
+    ok: bool
+    names: list[str]
+    relayStarted: bool
+
+
+def _validate_relays(content: str) -> list[str]:
+    """「<パス名> <IP/ホスト> <カメラ側パス>」形式を検証し、パス名一覧を返す。"""
+    names: list[str] = []
+    for i, line in enumerate(content.splitlines(), start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        m = _RELAY_LINE.match(stripped)
+        if not m:
+            raise AppError(
+                ErrorCode.VALIDATION_ERROR,
+                f"{i}行目: 「パス名 IPアドレス /カメラ側パス」の3列で指定してください: {stripped[:60]}",
+                status_code=422,
+            )
+        if m.group(1) in names:
+            raise AppError(
+                ErrorCode.VALIDATION_ERROR,
+                f"{i}行目: パス名 '{m.group(1)}' が重複しています",
+                status_code=422,
+            )
+        names.append(m.group(1))
+    return names
+
+
+@router.get("/relays-conf", response_model=RelaysResponse)
+async def get_relays_conf() -> RelaysResponse:
+    """中継カメラ定義（relays.conf）の現在の内容を返す。"""
+    content = _RELAYS_PATH.read_text(encoding="utf-8") if _RELAYS_PATH.exists() else ""
+    return RelaysResponse(content=content, path=str(_RELAYS_PATH))
+
+
+@router.put("/relays-conf", response_model=RelaysUpdateResponse)
+async def update_relays_conf(req: RelaysUpdateRequest) -> RelaysUpdateResponse:
+    """relays.conf を検証して書き込み、camera-relay.sh start で新規中継を起動する。
+
+    既に動作中の中継は再起動されない（IP変更などは
+    ./scripts/camera-relay.sh stop && start が必要）。
+    """
+    import asyncio as _asyncio
+
+    names = _validate_relays(req.content)
+
+    if _RELAYS_PATH.exists():
+        (_RELAYS_PATH.parent / "relays.conf.bak").write_text(
+            _RELAYS_PATH.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    _RELAYS_PATH.write_text(req.content, encoding="utf-8")
+    logger.info("relays.conf をUIから更新: %d 中継", len(names))
+
+    # 新規中継の起動（既存はスクリプト側で pgrep によりスキップ）
+    started = False
+    try:
+        proc = await _asyncio.create_subprocess_exec(
+            "bash",
+            str(_RELAY_SCRIPT),
+            "start",
+            stdout=_asyncio.subprocess.DEVNULL,
+            stderr=_asyncio.subprocess.DEVNULL,
+        )
+        await _asyncio.wait_for(proc.wait(), timeout=15)
+        started = proc.returncode == 0
+    except Exception:
+        logger.exception("camera-relay.sh start の実行に失敗")
+
+    return RelaysUpdateResponse(ok=True, names=names, relayStarted=started)

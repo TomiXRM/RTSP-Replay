@@ -141,6 +141,16 @@ export const api = {
       body: { content },
     }),
 
+  // --- 中継カメラ定義（relays.conf） ---
+  getRelaysConf: () =>
+    request<{ content: string; path: string }>("/config/relays-conf"),
+
+  putRelaysConf: (content: string) =>
+    request<{ ok: boolean; names: string[]; relayStarted: boolean }>(
+      "/config/relays-conf",
+      { method: "PUT", body: { content } },
+    ),
+
   // --- .env（認証情報。LAN内利用前提） ---
   getEnv: () => request<{ content: string; path: string }>("/config/env"),
 
