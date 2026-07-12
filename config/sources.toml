@@ -40,14 +40,3 @@ name = "カメラ4（テストパターン）"
 rtsp_url = "rtsp://localhost:8554/cam-04"
 enabled = true
 
-
-# 実機カメラ（認証は .env の CAM_USERNAME / CAM_PASSWORD を参照）
-[[sources]]
-id = "cam-live-140"
-name = "実カメラ（172.16.0.140）"
-host = "172.16.0.140"
-port = 554
-path = "/live"
-username_env = "CAM_USERNAME"
-password_env = "CAM_PASSWORD"
-enabled = true

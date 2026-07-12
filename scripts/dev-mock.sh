@@ -55,12 +55,14 @@ start_dummy_cameras() {
       echo "  cam-0${i}: 既に起動中（スキップ）"
       continue
     fi
-    # 各カメラごとに異なるテストパターン
+    # 各カメラごとに異なる「動きのある」テストパターン
+    # 1: ライフゲーム（セル増殖） 2: カウンタ付きパターン
+    # 3: アニメーションパターン   4: マンデルブロズーム
     case $i in
-      1) SRC="smptebars=size=1280x720:rate=15" ;;
+      1) SRC="life=size=1280x720:rate=15:mold=10:life_color=#c9ff05:death_color=#0a1020" ;;
       2) SRC="testsrc=size=1280x720:rate=15" ;;
       3) SRC="testsrc2=size=1280x720:rate=15" ;;
-      4) SRC="smptehdbars=size=1280x720:rate=15" ;;
+      4) SRC="mandelbrot=size=1280x720:rate=15" ;;
     esac
     ffmpeg -re -stream_loop -1 \
       -f lavfi \

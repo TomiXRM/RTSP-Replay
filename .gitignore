@@ -34,6 +34,9 @@ venv/
 # MediaMTX
 *.log
 
+# 生の画面録画（GIF変換元。100MB超のためGitHubへpush不可）
+docs/assets/*.mov
+
 # OS
 .DS_Store
 Thumbs.db

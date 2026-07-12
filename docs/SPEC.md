@@ -1302,7 +1302,7 @@ POST /api/v1/incidents
 {
   "title": "搬送停止",
   "reason": "ROBOT_ERROR",
-  "note": "C3コンベア付近で停止",
+  "note": "輸送中に停止",
   "start": "2026-07-10T10:20:00Z",
   "end": "2026-07-10T10:30:00Z",
   "sourceIds": [
