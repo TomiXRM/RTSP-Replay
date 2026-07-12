@@ -160,6 +160,37 @@ CAM_USERNAME=ユーザー名
 CAM_PASSWORD=パスワード
 ```
 
+> **注意**: 認証が必要なカメラを形式1（`rtsp_url` 直書き）で登録する場合は
+> `rtsp://ユーザー名:パスワード@192.168.1.20:554/main` のように URL 内へ含める必要があります。
+> URL に認証を書き忘れると、MediaMTX 側で `401 (Unauthorized)` になり映像が永遠に出ません。
+> 実カメラは形式2（`username_env` / `password_env`）を使うのが安全です（書き忘れが起きず、
+> パスワードが設定画面や Git に露出しません）。
+
+### 例: AtomCam2（atomcam_tools 導入済み）を登録する
+
+AtomCam2 の RTSP 配信は、ユーザー名 `6199`・パスワード `4003`・パス `/live` が公式の既定値です。
+
+```toml
+[[sources]]
+id = "atomcam-01"
+name = "AtomCam2（作業エリア）"
+host = "192.168.1.30"    # カメラのIPアドレスに置き換える
+port = 554
+path = "/live"
+username_env = "CAM_USERNAME"
+password_env = "CAM_PASSWORD"
+enabled = true
+```
+
+```bash
+# .env（AtomCam2 の既定値）
+CAM_USERNAME=6199
+CAM_PASSWORD=4003
+```
+
+複数台ある場合は `[[sources]]` ブロックを IP を変えて並べるだけです（認証は全台で同じ `.env` を参照）。
+`id` はこのシステム内での配信・録画の名前で、カメラ側のパス `/live` と一致させる必要はありません。
+
 一時的なカメラは「Paneを追加 → URLを入力」からも追加できます（TOML は変更されず、SQLite に保存）。
 
 ## 主な設定（.env）
