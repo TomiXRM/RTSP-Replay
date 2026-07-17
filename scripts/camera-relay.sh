@@ -50,6 +50,7 @@ start_relays() {
     (
       while true; do
         ffmpeg -nostdin -rtsp_transport tcp \
+          -timeout 5000000 \
           -use_wallclock_as_timestamps 1 \
           -i "$src" \
           -c copy \
